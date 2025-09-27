@@ -380,6 +380,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     addTimerBtn.addEventListener('click', addTimer);
     clearAllBtn.addEventListener('click', clearAllTimers);
+    channelInput.addEventListener('click', function() {
+        this.select();
+    });
     channelInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') addTimer();
     });
