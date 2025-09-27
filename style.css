@@ -57,9 +57,10 @@ h1 {
 .custom-select-wrapper { position: relative; user-select: none; width: 220px; }
 .custom-select { position: relative; }
 
+/* ⭐⭐⭐ 修改 custom-select-trigger ⭐⭐⭐ */
 .custom-select-trigger {
     display: flex; 
-    align-items: center;
+    align-items: center; /* 讓內容垂直置中 */
     justify-content: space-between; 
     padding: 8px 12px;
     background-color: #333; 
@@ -67,13 +68,14 @@ h1 {
     border-radius: 5px; 
     cursor: pointer;
 }
+/* ⭐⭐⭐ 確保 trigger 內的 span 也能垂直置中 ⭐⭐⭐ */
 .custom-select-trigger span { 
     white-space: nowrap; 
     overflow: hidden; 
-    /* text-overflow: ellipsis;  <-- 這個屬性在這裡無效，需移至子元素 */
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    /* text-overflow: ellipsis;  */
+    display: flex; /* 讓圖片和文字在 span 內也能 flex 排版 */
+    align-items: center; /* 垂直置中 */
+    gap: 10px; /* 圖片和文字的間距 */
 }
 
 
@@ -84,15 +86,16 @@ h1 {
 .custom-select.open .arrow { transform: rotate(-180deg); }
 .custom-options {
     position: absolute; top: 110%; left: 0; right: 0; background: #333;
-    border: 1px solid #666; border-radius: 5px; z-index: 2;
+    border: 1px solid #666; border-radius: 5px; z-index: 11;
     max-height: 200px; overflow-y: auto;
     opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.3s;
 }
 .custom-select.open .custom-options { opacity: 1; visibility: visible; transform: translateY(0); }
 
+/* ⭐⭐⭐ 修改 custom-option ⭐⭐⭐ */
 .custom-option {
     display: flex; 
-    align-items: center;
+    align-items: center; /* 讓圖片和文字垂直置中 */
     gap: 10px; 
     padding: 8px 12px;
     cursor: pointer; 
@@ -104,12 +107,9 @@ h1 {
     width: 30px; 
     height: 30px; 
     object-fit: contain; 
+    /* ⭐ 確保圖片自身沒有額外的底部空間 */
     vertical-align: middle; 
 }
-
-/* ⭐⭐⭐ --- 新增/修改的樣式 --- ⭐⭐⭐ */
-
-/* 1. 限制選擇後，顯示框內的圖片大小 */
 .custom-select-trigger span img {
     width: 30px;
     height: 30px;
@@ -123,8 +123,6 @@ h1 {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-/* ⭐⭐⭐ --- 樣式修改結束 --- ⭐⭐⭐ */
-
 
 /* 計時器區域 */
 .timers-section h2 {
@@ -171,11 +169,20 @@ h1 {
 .fixed-respawn-time { font-size: 12px; color: #87ceeb; margin-top: 8px; }
 
 /* 按鈕樣式 */
-.card-buttons { position: absolute; top: 8px; right: 8px; display: flex; gap: 8px; }
+.card-buttons { position: absolute; top: 8px; right: 8px; display: flex; gap: 8px;     z-index: 10; }
 .delete-btn, .reset-btn {
     background: #dc3545; border: none; color: white; width: 28px; height: 28px;
     border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px;
-    line-height: 28px; text-align: center; transition: transform 0.2s;
+    
+    /* --- 修改開始 --- */
+    display: flex;              /* 新增: 使用 Flexbox佈局 */
+    justify-content: center;    /* 新增: 水平置中 */
+    align-items: center;        /* 新增: 垂直置中 */
+    line-height: 1;             /* 修改: 移除 line-height 的影響 */
+    /* --- 修改結束 --- */
+
+    text-align: center; 
+    transition: transform 0.2s;
 }
 .reset-btn { background: #007bff; }
 .delete-btn:hover, .reset-btn:hover { transform: scale(1.1); }
