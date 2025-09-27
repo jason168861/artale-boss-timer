@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.dataset.timerId = timer.id;
         card.innerHTML = `
             <div class="card-buttons">
-                <button class="reset-btn" title="重置計時">🔄</button>
+                <button class="reset-btn" title="重置計時">↻</button>
                 <button class="delete-btn" title="刪除">X</button>
             </div>
             <div class="card-header">
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ... (與 createTimerCard 相同的 innerHTML)
         card.innerHTML = `
             <div class="card-buttons">
-                <button class="reset-btn" title="重置計時">🔄</button>
+                <button class="reset-btn" title="重置計時">↻</button>
                 <button class="delete-btn" title="刪除">X</button>
             </div>
             <div class="card-header">

@@ -56,11 +56,29 @@ h1 {
 /* --- 自訂下拉選單樣式 --- */
 .custom-select-wrapper { position: relative; user-select: none; width: 220px; }
 .custom-select { position: relative; }
+
+/* ⭐⭐⭐ 修改 custom-select-trigger ⭐⭐⭐ */
 .custom-select-trigger {
-    display: flex; align-items: center; justify-content: space-between; padding: 8px 12px;
-    background-color: #333; border: 1px solid #666; border-radius: 5px; cursor: pointer;
+    display: flex; 
+    align-items: center; /* 讓內容垂直置中 */
+    justify-content: space-between; 
+    padding: 8px 12px;
+    background-color: #333; 
+    border: 1px solid #666; 
+    border-radius: 5px; 
+    cursor: pointer;
 }
-.custom-select-trigger span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ⭐⭐⭐ 確保 trigger 內的 span 也能垂直置中 ⭐⭐⭐ */
+.custom-select-trigger span { 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    display: flex; /* 讓圖片和文字在 span 內也能 flex 排版 */
+    align-items: center; /* 垂直置中 */
+    gap: 10px; /* 圖片和文字的間距 */
+}
+
+
 .custom-select-trigger .arrow {
     width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent;
     border-top: 5px solid #ccc; transition: transform 0.3s;
@@ -73,13 +91,25 @@ h1 {
     opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.3s;
 }
 .custom-select.open .custom-options { opacity: 1; visibility: visible; transform: translateY(0); }
+
+/* ⭐⭐⭐ 修改 custom-option ⭐⭐⭐ */
 .custom-option {
-    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
-    cursor: pointer; transition: background-color 0.2s;
+    display: flex; 
+    align-items: center; /* 讓圖片和文字垂直置中 */
+    gap: 10px; 
+    padding: 8px 12px;
+    cursor: pointer; 
+    transition: background-color 0.2s;
 }
 .custom-option:hover { background-color: #555; }
 .custom-option.selected { background-color: #007bff; }
-.custom-option img { width: 30px; height: 30px; object-fit: contain; }
+.custom-option img { 
+    width: 30px; 
+    height: 30px; 
+    object-fit: contain; 
+    /* ⭐ 確保圖片自身沒有額外的底部空間 */
+    vertical-align: middle; 
+}
 
 /* 計時器區域 */
 .timers-section h2 {
@@ -109,15 +139,14 @@ h1 {
 .card-header .title-group { flex-grow: 1; }
 .card-header .title-group h3 { margin: 0; color: #ffc107; }
 
-/* ⭐⭐⭐ 修改這裡讓頻道更醒目 ⭐⭐⭐ */
 .channel-display {
-    background-color: #ff9800; /* 橘色背景，很醒目 */
+    background-color: #ff9800; 
     color: #333;
     font-weight: bold;
-    font-size: 18px; /* 加大字體 (原為 14px) */
-    padding: 4px 10px; /* 增加內距，讓背景框更大 (原為 2px 8px) */
+    font-size: 18px; 
+    padding: 4px 10px; 
     border-radius: 5px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2); /* 加上細微文字陰影增加立體感 */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2); 
 }
 
 .timer-info p { margin: 2px 0 0; font-size: 14px; color: #ccc; }
