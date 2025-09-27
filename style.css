@@ -4,8 +4,83 @@ body {
     background-color: #333;
     color: #f0f0f0;
     margin: 0;
-    padding: 20px;
+    padding: 0; /* 改為 0，讓歡迎畫面能填滿 */
 }
+
+/* ⭐ 新增：通用的隱藏 class */
+.hidden {
+    display: none !important;
+}
+
+/* ⭐ 新增：歡迎畫面樣式 */
+#welcome-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 2000;
+}
+
+#welcome-screen h2 {
+    color: #ffc107;
+    font-size: 2em;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+#boss-selection-grid {
+    display: grid;
+    /* 調整 minmax 讓項目在小螢幕上更好看 */
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1000px;
+    max-height: 75vh;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.boss-grid-item {
+    background-color: #444;
+    border-radius: 8px;
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid #555;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.boss-grid-item:hover {
+    background-color: #5a5a5a;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+}
+
+.boss-grid-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.boss-grid-item span {
+    font-size: 14px;
+    font-weight: bold;
+    color: #f0f0f0;
+}
+
 
 .container {
     max-width: 1200px;
@@ -57,10 +132,9 @@ h1 {
 .custom-select-wrapper { position: relative; user-select: none; width: 220px; }
 .custom-select { position: relative; }
 
-/* ⭐⭐⭐ 修改 custom-select-trigger ⭐⭐⭐ */
 .custom-select-trigger {
     display: flex; 
-    align-items: center; /* 讓內容垂直置中 */
+    align-items: center; 
     justify-content: space-between; 
     padding: 8px 12px;
     background-color: #333; 
@@ -68,14 +142,12 @@ h1 {
     border-radius: 5px; 
     cursor: pointer;
 }
-/* ⭐⭐⭐ 確保 trigger 內的 span 也能垂直置中 ⭐⭐⭐ */
 .custom-select-trigger span { 
     white-space: nowrap; 
     overflow: hidden; 
-    /* text-overflow: ellipsis;  */
-    display: flex; /* 讓圖片和文字在 span 內也能 flex 排版 */
-    align-items: center; /* 垂直置中 */
-    gap: 10px; /* 圖片和文字的間距 */
+    display: flex;
+    align-items: center; 
+    gap: 10px;
 }
 
 
@@ -92,10 +164,9 @@ h1 {
 }
 .custom-select.open .custom-options { opacity: 1; visibility: visible; transform: translateY(0); }
 
-/* ⭐⭐⭐ 修改 custom-option ⭐⭐⭐ */
 .custom-option {
     display: flex; 
-    align-items: center; /* 讓圖片和文字垂直置中 */
+    align-items: center; 
     gap: 10px; 
     padding: 8px 12px;
     cursor: pointer; 
@@ -107,17 +178,15 @@ h1 {
     width: 30px; 
     height: 30px; 
     object-fit: contain; 
-    /* ⭐ 確保圖片自身沒有額外的底部空間 */
     vertical-align: middle; 
 }
 .custom-select-trigger span img {
     width: 30px;
     height: 30px;
     object-fit: contain;
-    flex-shrink: 0; /* 防止圖片被壓縮 */
+    flex-shrink: 0; 
 }
 
-/* 2. 讓選擇後，顯示框內的文字在過長時顯示 ... */
 .custom-select-trigger span span {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -150,9 +219,9 @@ h1 {
 
 .boss-portrait {
     display: flex;
-    flex-direction: column; /* 讓裡面的項目垂直排列 */
-    align-items: center;    /* 水平置中 */
-    flex-shrink: 0;         /* 防止此區塊被壓縮 */
+    flex-direction: column; 
+    align-items: center;    
+    flex-shrink: 0;         
 }
 
 .card-header img { width: 50px; height: 50px; object-fit: contain; }
@@ -167,9 +236,7 @@ h1 {
     padding: 3px 10px;
     border-radius: 5px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* 讓陰影稍微柔和一點 */
-    
-    /* 關鍵：將負邊距改為正邊距，在圖片下方創造間隔 */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
     margin-top: 5px; 
 }
 
@@ -181,15 +248,15 @@ h1 {
 
 /* 按鈕樣式 */
 .card-buttons { position: absolute; top: 8px; right: 8px; display: flex; gap: 8px;     z-index: 10; }
-.delete-btn, .reset-btn, .loot-btn { /* ⭐ 新增 .loot-btn */
+.delete-btn, .reset-btn, .loot-btn {
     background: #dc3545; border: none; color: white; width: 28px; height: 28px;
     border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px;
     display: flex; justify-content: center; align-items: center;
     line-height: 1; transition: transform 0.2s;
 }
 .reset-btn { background: #007bff; }
-.loot-btn { background: #9c27b0; font-size: 14px; } /* ⭐ .loot-btn 樣式 */
-.delete-btn:hover, .reset-btn:hover, .loot-btn:hover { transform: scale(1.1); } /* ⭐ 新增 hover */
+.loot-btn { background: #9c27b0; font-size: 14px; }
+.delete-btn:hover, .reset-btn:hover, .loot-btn:hover { transform: scale(1.1); }
 /* 狀態顏色 */
 .status-window-open { border-left-color: #28a745; animation: pulse-green 2s infinite; }
 .status-overdue { border-left-color: #ffc107; }
@@ -213,11 +280,6 @@ h1 {
     z-index: 1000;
     opacity: 1;
     transition: opacity 0.3s ease;
-}
-
-.modal-overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
 }
 
 .modal-content {
@@ -251,7 +313,6 @@ h1 {
     gap: 15px;
 }
 
-/* ⭐ 新增清除按鈕樣式 */
 .clear-btn {
     background-color: #6c757d;
     color: white;
@@ -285,16 +346,15 @@ h1 {
     padding-right: 10px; /* for scrollbar */
 }
 
-/* ⭐ 修改 .loot-item 樣式以配合 label 標籤 */
 .loot-item {
     display: flex;
     align-items: center;
     background-color: #555;
     padding: 8px;
     border-radius: 5px;
-    cursor: pointer; /* 因為是 label，整個區塊都可點 */
+    cursor: pointer;
     transition: background-color 0.2s;
-    user-select: none; /* 讓文字無法被選取，點擊體驗更好 */
+    user-select: none;
 }
 
 .loot-item:hover {
@@ -305,7 +365,6 @@ h1 {
     margin-right: 10px;
     min-width: 18px;
     height: 18px;
-    /* 讓 checkbox 不會攔截到 label 的點擊事件，體驗更統一 */
     pointer-events: none; 
 }
 
@@ -316,7 +375,6 @@ h1 {
     margin-right: 10px;
 }
 
-/* ⭐ 原本的 .loot-item label 樣式改為針對 span */
 .loot-item span {
     font-size: 14px;
     color: #f0f0f0;
