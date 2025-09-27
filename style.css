@@ -158,14 +158,19 @@ h1 {
 /* 按鈕樣式 */
 .card-buttons { position: absolute; top: 8px; right: 8px; display: flex; gap: 8px;     z-index: 10; }
 .delete-btn, .reset-btn {
-        background: #dc3545; border: none; color: white; width: 28px; height: 28px;
-        border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px;
-        transition: transform 0.2s;
-        /* --- 以下是修改的部分 --- */
-        display: flex;
-        justify-content: center; /* 水平置中 */
-        align-items: center; /* 垂直置中 */
-    }
+    background: #dc3545; border: none; color: white; width: 28px; height: 28px;
+    border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px;
+    
+    /* --- 修改開始 --- */
+    display: flex;              /* 新增: 使用 Flexbox佈局 */
+    justify-content: center;    /* 新增: 水平置中 */
+    align-items: center;        /* 新增: 垂直置中 */
+    line-height: 1;             /* 修改: 移除 line-height 的影響 */
+    /* --- 修改結束 --- */
+
+    text-align: center; 
+    transition: transform 0.2s;
+}
 .reset-btn { background: #007bff; }
 .delete-btn:hover, .reset-btn:hover { transform: scale(1.1); }
 
