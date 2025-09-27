@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>楓之谷 Artele BOSS 重生計時器 v4</title>
+    <title>楓之谷 Artele BOSS 重生計時器 v5 - 掉落物追蹤</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,7 +20,7 @@
                             <div class="arrow"></div>
                         </div>
                         <div class="custom-options">
-                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -29,7 +29,8 @@
                 <input type="number" id="channel-input" min="1" max="3000" value="1">
             </div>
             <button id="add-timer-btn">新增計時器</button>
-            <button id="clear-all-btn">全部清除</button> </div>
+            <button id="clear-all-btn">全部清除</button>
+        </div>
 
         <div class="timers-section">
             <h2>🔥 已進入重生區間</h2>
@@ -39,6 +40,20 @@
         <div class="timers-section">
             <h2>⏳ 等待重生中</h2>
             <div id="waiting-container" class="timers-grid"></div>
+        </div>
+    </div>
+
+    <div id="loot-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="loot-modal-title">BOSS 掉落物紀錄</h2>
+                <div class="modal-header-buttons">
+                    <button id="clear-loot-btn" class="clear-btn" title="清除此BOSS的紀錄">清除紀錄</button>
+                    <button id="close-loot-modal-btn" class="close-btn">&times;</button>
+                </div>
+            </div>
+            <div id="loot-item-container" class="loot-grid">
+                </div>
         </div>
     </div>
 

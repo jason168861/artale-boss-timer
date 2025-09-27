@@ -148,18 +148,29 @@ h1 {
     box-sizing: border-box; 
 }
 
+.boss-portrait {
+    display: flex;
+    flex-direction: column; /* 讓裡面的項目垂直排列 */
+    align-items: center;    /* 水平置中 */
+    flex-shrink: 0;         /* 防止此區塊被壓縮 */
+}
+
 .card-header img { width: 50px; height: 50px; object-fit: contain; }
 .card-header .title-group { flex-grow: 1; }
 .card-header .title-group h3 { margin: 0; color: #ffc107; }
 
 .channel-display {
-    background-color: #ff9800; 
+    background-color: #ff9800;
     color: #333;
     font-weight: bold;
-    font-size: 18px; 
-    padding: 4px 10px; 
+    font-size: 14px;
+    padding: 3px 10px;
     border-radius: 5px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2); 
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* 讓陰影稍微柔和一點 */
+    
+    /* 關鍵：將負邊距改為正邊距，在圖片下方創造間隔 */
+    margin-top: 5px; 
 }
 
 .timer-info p { margin: 2px 0 0; font-size: 14px; color: #ccc; }
@@ -170,23 +181,15 @@ h1 {
 
 /* 按鈕樣式 */
 .card-buttons { position: absolute; top: 8px; right: 8px; display: flex; gap: 8px;     z-index: 10; }
-.delete-btn, .reset-btn {
+.delete-btn, .reset-btn, .loot-btn { /* ⭐ 新增 .loot-btn */
     background: #dc3545; border: none; color: white; width: 28px; height: 28px;
     border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px;
-    
-    /* --- 修改開始 --- */
-    display: flex;              /* 新增: 使用 Flexbox佈局 */
-    justify-content: center;    /* 新增: 水平置中 */
-    align-items: center;        /* 新增: 垂直置中 */
-    line-height: 1;             /* 修改: 移除 line-height 的影響 */
-    /* --- 修改結束 --- */
-
-    text-align: center; 
-    transition: transform 0.2s;
+    display: flex; justify-content: center; align-items: center;
+    line-height: 1; transition: transform 0.2s;
 }
 .reset-btn { background: #007bff; }
-.delete-btn:hover, .reset-btn:hover { transform: scale(1.1); }
-
+.loot-btn { background: #9c27b0; font-size: 14px; } /* ⭐ .loot-btn 樣式 */
+.delete-btn:hover, .reset-btn:hover, .loot-btn:hover { transform: scale(1.1); } /* ⭐ 新增 hover */
 /* 狀態顏色 */
 .status-window-open { border-left-color: #28a745; animation: pulse-green 2s infinite; }
 .status-overdue { border-left-color: #ffc107; }
@@ -194,4 +197,127 @@ h1 {
     0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
     70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
     100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-content {
+    background-color: #444;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #555;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+#loot-modal-title {
+    margin: 0;
+    color: #ffc107;
+}
+.modal-header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* ⭐ 新增清除按鈕樣式 */
+.clear-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.close-btn {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #fff;
+}
+
+.loot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+    overflow-y: auto;
+    padding-right: 10px; /* for scrollbar */
+}
+
+/* ⭐ 修改 .loot-item 樣式以配合 label 標籤 */
+.loot-item {
+    display: flex;
+    align-items: center;
+    background-color: #555;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer; /* 因為是 label，整個區塊都可點 */
+    transition: background-color 0.2s;
+    user-select: none; /* 讓文字無法被選取，點擊體驗更好 */
+}
+
+.loot-item:hover {
+    background-color: #666;
+}
+
+.loot-item input[type="checkbox"] {
+    margin-right: 10px;
+    min-width: 18px;
+    height: 18px;
+    /* 讓 checkbox 不會攔截到 label 的點擊事件，體驗更統一 */
+    pointer-events: none; 
+}
+
+.loot-item img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    margin-right: 10px;
+}
+
+/* ⭐ 原本的 .loot-item label 樣式改為針對 span */
+.loot-item span {
+    font-size: 14px;
+    color: #f0f0f0;
 }
