@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>楓之谷 Artele BOSS 重生計時器 v4</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>楓之谷 Artele BOSS 重生計時器</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>選擇 BOSS：</label>
+                <div class="custom-select-wrapper">
+                    <div class="custom-select">
+                        <div class="custom-select-trigger">
+                            <span>選擇一個 BOSS...</span>
+                            <div class="arrow"></div>
+                        </div>
+                        <div class="custom-options">
+                            </div>
+                    </div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="channel-input">頻道：</label>
+                <input type="number" id="channel-input" min="1" max="20" value="1">
+            </div>
+            <button id="add-timer-btn">新增計時器</button>
+            <button id="clear-all-btn">全部清除</button> </div>
+
+        <div class="timers-section">
+            <h2>🔥 已進入重生區間</h2>
+            <div id="respawn-ready-container" class="timers-grid"></div>
+        </div>
+        
+        <div class="timers-section">
+            <h2>⏳ 等待重生中</h2>
+            <div id="waiting-container" class="timers-grid"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
