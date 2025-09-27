@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // ⭐ 新增：歡迎畫面和主容器的 DOM 元素
+    // DOM 元素
     const welcomeScreen = document.getElementById('welcome-screen');
     const bossSelectionGrid = document.getElementById('boss-selection-grid');
     const mainContainer = document.querySelector('.container');
-
-    // 主計時器畫面的 DOM 元素
     const channelInput = document.getElementById('channel-input');
     const addTimerBtn = document.getElementById('add-timer-btn');
     const clearAllBtn = document.getElementById('clear-all-btn');
@@ -14,58 +12,115 @@ document.addEventListener('DOMContentLoaded', () => {
     const customSelect = customSelectWrapper.querySelector('.custom-select');
     const customSelectTrigger = customSelectWrapper.querySelector('.custom-select-trigger span');
     const customOptions = customSelectWrapper.querySelector('.custom-options');
-
-    // Modal DOM 元素
     const lootModal = document.getElementById('loot-modal');
     const lootModalTitle = document.getElementById('loot-modal-title');
     const closeLootModalBtn = document.getElementById('close-loot-modal-btn');
     const clearLootBtn = document.getElementById('clear-loot-btn');
     const lootItemContainer = document.getElementById('loot-item-container');
 
+    // 資料變數
     let bossData = {};
     let dropData = {};
     let savedDrops = {};
     let activeTimers = [];
+    let pinnedBosses = []; // ⭐ 新增：用於儲存置頂的 BOSS
     let selectedBoss = null;
     let currentLootBoss = null;
 
-    // --- ⭐ 修改：資料載入函式 ---
+    // --- 1. 資料處理與渲染 ---
+
+    // ⭐ 新增：儲存置頂設定到 localStorage
+    function savePins() {
+        localStorage.setItem('mapleBossPins', JSON.stringify(pinnedBosses));
+    }
+
+    // ⭐ 新增：從 localStorage 讀取置頂設定
+    function loadPins() {
+        const savedPins = localStorage.getItem('mapleBossPins');
+        if (savedPins) {
+            pinnedBosses = JSON.parse(savedPins);
+        }
+    }
+    
+    // ⭐ 新增：切換 BOSS 的置頂狀態
+    function togglePin(bossName, event) {
+        event.stopPropagation(); // 防止觸發父層的點擊事件（即選擇 BOSS）
+        const index = pinnedBosses.indexOf(bossName);
+        if (index > -1) {
+            pinnedBosses.splice(index, 1); // 如果已置頂，則取消
+        } else {
+            pinnedBosses.push(bossName); // 如果未置頂，則加入
+        }
+        savePins();
+        renderBossOptions(); // 重新渲染列表以更新順序和樣式
+    }
+    
+    // ⭐ 修改：建立一個專門渲染 BOSS 選項的函式
+    function renderBossOptions() {
+        // 清空現有選項
+        customOptions.innerHTML = '';
+        bossSelectionGrid.innerHTML = '';
+
+        // 取得所有 BOSS 名稱並排序（置頂優先，然後按預設順序）
+        const allBossNames = Object.keys(bossData);
+        allBossNames.sort((a, b) => {
+            const isAPinned = pinnedBosses.includes(a);
+            const isBPinned = pinnedBosses.includes(b);
+            if (isAPinned && !isBPinned) return -1;
+            if (!isAPinned && isBPinned) return 1;
+            return 0; // 保持原有順序
+        });
+
+        // 遍歷排序後的 BOSS 列表來建立元素
+        allBossNames.forEach(bossName => {
+            const isPinned = pinnedBosses.includes(bossName);
+
+            // 1. 建立下拉選單選項
+            const option = document.createElement('div');
+            option.className = 'custom-option';
+            option.dataset.value = bossName;
+            // ⭐ 在 HTML 中加入圖釘按鈕
+            option.innerHTML = `
+                <span class="pin-btn ${isPinned ? 'active' : ''}" title="置頂/取消置頂">📌</span>
+                <img src="./image/${bossName}.png" alt="${bossName}">
+                <span>${bossName}</span>
+            `;
+            
+            option.addEventListener('click', () => {
+                if (document.querySelector('.custom-option.selected')) {
+                    document.querySelector('.custom-option.selected').classList.remove('selected');
+                }
+                option.classList.add('selected');
+                customSelectTrigger.innerHTML = `<img src="./image/${bossName}.png" alt="${bossName}"><span>${bossName}</span>`;
+                selectedBoss = bossName;
+                customSelect.classList.remove('open'); // 選擇後自動關閉
+            });
+            
+            // ⭐ 為圖釘按鈕綁定置頂事件
+            option.querySelector('.pin-btn').addEventListener('click', (e) => togglePin(bossName, e));
+            
+            customOptions.appendChild(option);
+
+            // 2. 建立歡迎畫面的 BOSS 方格
+            const gridItem = document.createElement('div');
+            gridItem.className = 'boss-grid-item';
+            gridItem.dataset.bossName = bossName;
+            gridItem.innerHTML = `<img src="./image/${bossName}.png" alt="${bossName}"><span>${bossName}</span>`;
+            gridItem.addEventListener('click', () => selectBossFromWelcomeScreen(bossName));
+            bossSelectionGrid.appendChild(gridItem);
+        });
+    }
+
     async function loadAllData() {
         try {
-            const bossResponse = await fetch('boss_time.json');
+            const [bossResponse, dropResponse] = await Promise.all([
+                fetch('boss_time.json'),
+                fetch('drop.json')
+            ]);
             bossData = await bossResponse.json();
-
-            // ⭐ 同時產生下拉選單選項 和 歡迎畫面的方格
-            for (const bossName in bossData) {
-                // 1. 建立下拉選單選項 (原本的邏輯)
-                const option = document.createElement('div');
-                option.className = 'custom-option';
-                option.dataset.value = bossName;
-                option.innerHTML = `<img src="./image/${bossName}.png" alt="${bossName}"><span>${bossName}</span>`;
-                
-                option.addEventListener('click', () => {
-                    if (document.querySelector('.custom-option.selected')) {
-                        document.querySelector('.custom-option.selected').classList.remove('selected');
-                    }
-                    option.classList.add('selected');
-                    customSelectTrigger.innerHTML = option.innerHTML;
-                    selectedBoss = bossName;
-                });
-                customOptions.appendChild(option);
-
-                // 2. ⭐ 建立歡迎畫面的 BOSS 方格
-                const gridItem = document.createElement('div');
-                gridItem.className = 'boss-grid-item';
-                gridItem.dataset.bossName = bossName;
-                gridItem.innerHTML = `<img src="./image/${bossName}.png" alt="${bossName}"><span>${bossName}</span>`;
-
-                // 綁定點擊事件，點擊後選定 BOSS 並切換畫面
-                gridItem.addEventListener('click', () => selectBossFromWelcomeScreen(bossName));
-                bossSelectionGrid.appendChild(gridItem);
-            }
-
-            const dropResponse = await fetch('drop.json');
             dropData = await dropResponse.json();
+            
+            renderBossOptions(); // ⭐ 資料載入後，呼叫渲染函式
 
         } catch (error) {
             console.error('無法載入 JSON 資料:', error);
@@ -73,21 +128,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // --- ⭐ 新增：從歡迎畫面選擇 BOSS 的函式 ---
     function selectBossFromWelcomeScreen(bossName) {
-        // 1. 在下拉選單中找到對應的選項
         const optionToSelect = customOptions.querySelector(`.custom-option[data-value="${bossName}"]`);
         if (optionToSelect) {
-            // 2. 模擬點擊或手動設定狀態，來更新下拉選單
             if (document.querySelector('.custom-option.selected')) {
                 document.querySelector('.custom-option.selected').classList.remove('selected');
             }
             optionToSelect.classList.add('selected');
-            customSelectTrigger.innerHTML = optionToSelect.innerHTML;
-            selectedBoss = bossName; // 設定全域變數
+            customSelectTrigger.innerHTML = optionToSelect.querySelector('img').outerHTML + optionToSelect.querySelector('span:last-child').outerHTML;
+            selectedBoss = bossName;
         }
-
-        // 3. 切換畫面
         welcomeScreen.classList.add('hidden');
         mainContainer.classList.remove('hidden');
     }
@@ -110,12 +160,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 3. 新增/修改/刪除/重置功能 ---
     function addTimer() {
+        if (!mainContainer.classList.contains('hidden') && (!selectedBoss || !channelInput.value)) {
+             alert('請選擇 BOSS 並輸入頻道！');
+             return;
+        }
+        
+        // 如果是從歡迎頁面直接新增
+        if(mainContainer.classList.contains('hidden')) {
+             welcomeScreen.classList.add('hidden');
+             mainContainer.classList.remove('hidden');
+        }
+
         const bossName = selectedBoss;
         const channel = channelInput.value;
         if (!bossName || !channel) {
             alert('請選擇 BOSS 並輸入頻道！');
             return;
         }
+
         const respawnString = bossData[bossName];
         const { minSeconds, maxSeconds } = parseRespawnTime(respawnString);
         const timer = {
@@ -199,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 4. 核心更新迴圈 (無變動) ---
+    // --- 4. 核心更新迴圈 ---
     function updateAllTimers() {
         const now = Date.now();
         activeTimers.forEach(timer => {
@@ -234,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // --- 掉落物 Modal 邏輯 (無變動) ---
+    // --- 5. 掉落物 Modal 邏輯 ---
     function openLootModal(bossName) {
         currentLootBoss = bossName;
         lootModalTitle.textContent = `${bossName} 掉落物紀錄`;
@@ -324,7 +386,8 @@ document.addEventListener('DOMContentLoaded', () => {
             allCheckboxes.forEach(checkbox => checkbox.checked = false);
         }
     }
-    // --- 5. 本地儲存 & 初始化 (無變動) ---
+
+    // --- 6. 本地儲存 & 初始化 ---
     function saveTimers() {
         localStorage.setItem('mapleBossTimers', JSON.stringify(activeTimers));
     }
@@ -333,8 +396,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedTimers = localStorage.getItem('mapleBossTimers');
         if (savedTimers) {
             activeTimers = JSON.parse(savedTimers);
+            // ⭐ 檢查計時器是否過期太久（例如超過一天），可選擇性清除
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+            activeTimers = activeTimers.filter(timer => now - timer.defeatTime < oneDay);
+            saveTimers(); // 更新儲存
+
             activeTimers.forEach(timer => createTimerCardForLoad(timer));
             updateAllTimers(); 
+        }
+
+        // 如果沒有活動計時器，則顯示歡迎畫面
+        if(activeTimers.length === 0){
+            welcomeScreen.classList.remove('hidden');
+            mainContainer.classList.add('hidden');
+        } else {
+            welcomeScreen.classList.add('hidden');
+            mainContainer.classList.remove('hidden');
         }
     }
     
@@ -353,10 +431,13 @@ document.addEventListener('DOMContentLoaded', () => {
         createTimerCard(timer);
     }
     
-    // --- 6. 事件綁定與啟動 ---
+    // --- 7. 事件綁定與啟動 ---
     function setupCustomSelect() {
-        customSelectWrapper.addEventListener('click', () => {
-            customSelect.classList.toggle('open');
+        customSelectWrapper.addEventListener('click', (e) => {
+            // ⭐ 確保點擊圖釘時不會開關選單
+            if(!e.target.classList.contains('pin-btn')){
+                customSelect.classList.toggle('open');
+            }
         });
 
         window.addEventListener('click', (e) => {
@@ -382,8 +463,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // 啟動流程 (無變動)
+    // --- 啟動流程 ---
     setupCustomSelect();
+    loadPins(); // ⭐ 先讀取置頂設定
     loadAllData().then(() => {
         loadTimers();
         loadDrops();

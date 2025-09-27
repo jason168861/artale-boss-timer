@@ -112,7 +112,7 @@ h1 {
 }
 .control-group { display: flex; align-items: center; gap: 8px; }
 #channel-input {
-    padding: 8px; width: 60px; border-radius: 5px; border: 1px solid #666;
+    padding: 12px; width: 100px; border-radius: 5px; border: 1px solid #666;
     background-color: #333; color: #f0f0f0; font-size: 16px;
 }
 #add-timer-btn {
@@ -167,11 +167,37 @@ h1 {
 .custom-option {
     display: flex; 
     align-items: center; 
-    gap: 10px; 
+    /* ⭐ 修改 gap 以適應新的圖釘按鈕 */
+    gap: 8px; 
     padding: 8px 12px;
     cursor: pointer; 
     transition: background-color 0.2s;
 }
+
+/* ⭐ 新增：圖釘按鈕樣式 */
+.pin-btn {
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: transform 0.2s, color 0.2s;
+    opacity: 0.3; /* 預設半透明 */
+}
+
+.custom-option:hover .pin-btn {
+    opacity: 1; /* 滑鼠移到選項上時圖釘完全顯示 */
+}
+
+.pin-btn:hover {
+    transform: scale(1.2);
+}
+
+.pin-btn.active {
+    opacity: 1; /* 置頂狀態下圖釘完全顯示 */
+    color: #ff0000; /* 讓置頂的圖釘變色 */
+}
+
+
 .custom-option:hover { background-color: #555; }
 .custom-option.selected { background-color: #007bff; }
 .custom-option img { 
