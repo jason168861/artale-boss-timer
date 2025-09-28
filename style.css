@@ -405,3 +405,70 @@ h1 {
     font-size: 14px;
     color: #f0f0f0;
 }
+/* 在 #add-timer-btn 樣式後面新增 */
+#share-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #17a2b8; /* 選擇一個不同的顏色，例如藍綠色 */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#share-btn:hover {
+    background-color: #138496;
+}
+/* ⭐ 新增：匯入確認視窗的樣式 */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.modal-btn:hover {
+    transform: translateY(-2px);
+}
+
+.modal-btn.replace {
+    background-color: #dc3545; /* 紅色 */
+    color: white;
+}
+.modal-btn.replace:hover {
+    background-color: #c82333;
+}
+
+.modal-btn.merge {
+    background-color: #28a745; /* 綠色 */
+    color: white;
+}
+.modal-btn.merge:hover {
+    background-color: #218838;
+}
+
+.modal-btn.cancel {
+    background-color: #6c757d; /* 灰色 */
+    color: white;
+}
+.modal-btn.cancel:hover {
+    background-color: #5a6268;
+}
+
+#confirm-import-modal .modal-content p {
+    font-size: 1.1em;
+    margin: 20px 0;
+    line-height: 1.6;
+}

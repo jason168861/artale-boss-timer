@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // DOM 元素
+    const shareBtn = document.getElementById('share-btn'); // ⭐ 新增：獲取分享按鈕元素
+
     const welcomeScreen = document.getElementById('welcome-screen');
     const bossSelectionGrid = document.getElementById('boss-selection-grid');
     const mainContainer = document.querySelector('.container');
@@ -17,7 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeLootModalBtn = document.getElementById('close-loot-modal-btn');
     const clearLootBtn = document.getElementById('clear-loot-btn');
     const lootItemContainer = document.getElementById('loot-item-container');
-
+    const confirmImportModal = document.getElementById('confirm-import-modal');
+    const importReplaceBtn = document.getElementById('import-replace-btn');
+    const importMergeBtn = document.getElementById('import-merge-btn');
+    const importCancelBtn = document.getElementById('import-cancel-btn');
     // 資料變數
     let bossData = {};
     let dropData = {};
@@ -26,7 +31,35 @@ document.addEventListener('DOMContentLoaded', () => {
     let pinnedBosses = []; // ⭐ 新增：用於儲存置頂的 BOSS
     let selectedBoss = null;
     let currentLootBoss = null;
+    let sharedTimersData = [];
 
+
+    function initializeApp() {
+        // ⭐ 需求 1 的修改點：
+        // 在載入任何資料前，先檢查 URL 是否為分享連結
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('share')) {
+            // 如果是分享連結，直接隱藏歡迎畫面，顯示主容器
+            welcomeScreen.classList.add('hidden');
+            mainContainer.classList.remove('hidden');
+        }
+
+        setupCustomSelect();
+        setupImportActions(); // 確保這個在 handleSharedURL 之前呼叫
+        loadPins();
+
+        loadAllData().then(() => {
+            // 正常載入本地計時器
+            loadTimers();
+            loadDrops();
+            
+            // 檢查 URL 是否有分享資料，如果有就跳出確認視窗
+            handleSharedURL();
+
+            // 啟動計時器迴圈
+            setInterval(updateAllTimers, 1000);
+        });
+    }
     // --- 1. 資料處理與渲染 ---
 
     // ⭐ 新增：儲存置頂設定到 localStorage
@@ -385,7 +418,116 @@ document.addEventListener('DOMContentLoaded', () => {
             allCheckboxes.forEach(checkbox => checkbox.checked = false);
         }
     }
+    function generateShareLink() {
+        if (activeTimers.length === 0) {
+            alert('沒有可以分享的計時器！');
+            return;
+        }
 
+        // 1. 將 activeTimers 陣列轉換成精簡的字串格式
+        // 格式: "BOSS名稱,頻道,擊殺時間戳|BOSS名稱,頻道,擊殺時間戳|..."
+        const shareableData = activeTimers.map(timer => {
+            return `${timer.bossName},${timer.channel},${timer.defeatTime}`;
+        }).join('|');
+
+        // 2. 使用 Base64 編碼來避免特殊字元問題，讓 URL 更乾淨
+        const encodedData = btoa(encodeURIComponent(shareableData));
+
+        // 3. 組合出完整的分享 URL
+        // location.origin + location.pathname 可以確保我們得到不含任何舊參數的乾淨網址
+        const shareUrl = `${location.origin}${location.pathname}?share=${encodedData}`;
+
+        // 4. 使用 navigator.clipboard API 將連結複製到使用者剪貼簿
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert('分享連結已複製到剪貼簿！\n傳給朋友，他們打開連結就能看到你的計時器狀態。');
+        }).catch(err => {
+            console.error('無法自動複製連結: ', err);
+            // 如果自動複製失敗，提供一個手動複製的備案
+            window.prompt("自動複製失敗，請手動複製此連結:", shareUrl);
+        });
+    }
+
+    function handleSharedURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const shareData = urlParams.get('share');
+
+        if (!shareData) return;
+
+        try {
+            const decodedData = decodeURIComponent(atob(shareData));
+            const timerDataStrings = decodedData.split('|');
+            
+            // 清空暫存陣列
+            sharedTimersData = [];
+
+            timerDataStrings.forEach(timerString => {
+                const [bossName, channel, defeatTimeString] = timerString.split(',');
+                const defeatTime = parseInt(defeatTimeString, 10);
+
+                if (bossData[bossName] && !isNaN(defeatTime)) {
+                    const respawnString = bossData[bossName];
+                    const { minSeconds, maxSeconds } = parseRespawnTime(respawnString);
+                    sharedTimersData.push({
+                        id: Date.now() + Math.random(),
+                        bossName, channel: parseInt(channel, 10), defeatTime,
+                        minRespawnTime: defeatTime + minSeconds * 1000,
+                        maxRespawnTime: defeatTime + maxSeconds * 1000,
+                        respawnString
+                    });
+                }
+            });
+
+            // 如果成功解析出資料，就顯示確認視窗
+            if (sharedTimersData.length > 0) {
+                confirmImportModal.classList.remove('hidden');
+            }
+
+        } catch (error) {
+            console.error('解析分享連結失敗:', error);
+            alert('分享連結無效或已損壞。');
+        }
+    }
+    
+    // ⭐ 新增：處理三種匯入選項的函式
+    function setupImportActions() {
+        // 1. 取代
+        importReplaceBtn.addEventListener('click', () => {
+            activeTimers = sharedTimersData;
+            // 清空畫面上的計時器
+            respawnReadyContainer.innerHTML = '';
+            waitingContainer.innerHTML = '';
+            // 重新渲染畫面
+            activeTimers.forEach(createTimerCard);
+            finishImport();
+        });
+
+        // 2. 合併
+        importMergeBtn.addEventListener('click', () => {
+            sharedTimersData.forEach(sharedTimer => {
+                // ⭐ 需求 2 的修改點：
+                // 移除 isDuplicate 檢查，直接將分享的計時器加入列表
+                activeTimers.push(sharedTimer);
+                createTimerCard(sharedTimer); // 在畫面上新增卡片
+            });
+            finishImport();
+        });
+
+        // 3. 取消
+        importCancelBtn.addEventListener('click', () => {
+            finishImport(false); // 取消時不儲存
+        });
+    }
+
+    // ⭐ 新增：完成匯入後的清理工作
+    function finishImport(shouldSave = true) {
+        if (shouldSave) {
+            saveTimers();
+        }
+        sharedTimersData = []; // 清空暫存資料
+        confirmImportModal.classList.add('hidden'); // 隱藏視窗
+        // 清理 URL，避免重新整理時再次跳出視窗
+        history.replaceState(null, '', window.location.pathname);
+    }
     // --- 6. 本地儲存 & 初始化 ---
     function saveTimers() {
         localStorage.setItem('mapleBossTimers', JSON.stringify(activeTimers));
@@ -446,6 +588,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     addTimerBtn.addEventListener('click', addTimer);
+    shareBtn.addEventListener('click', generateShareLink); // ⭐ 新增：為分享按鈕綁定事件
+
     clearAllBtn.addEventListener('click', clearAllTimers);
     channelInput.addEventListener('click', function() {
         this.select();
@@ -463,11 +607,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // --- 啟動流程 ---
-    setupCustomSelect();
-    loadPins(); // ⭐ 先讀取置頂設定
-    loadAllData().then(() => {
-        loadTimers();
-        loadDrops();
-        setInterval(updateAllTimers, 1000);
-    });
+    initializeApp();
 });
