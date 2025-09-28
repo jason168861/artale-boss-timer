@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 option.classList.add('selected');
                 customSelectTrigger.innerHTML = `<img src="./image/${bossName}.png" alt="${bossName}"><span>${bossName}</span>`;
                 selectedBoss = bossName;
-                customSelect.classList.remove('open'); // 選擇後自動關閉
             });
             
             // ⭐ 為圖釘按鈕綁定置頂事件
@@ -407,13 +406,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 如果沒有活動計時器，則顯示歡迎畫面
-        if(activeTimers.length === 0){
-            welcomeScreen.classList.remove('hidden');
-            mainContainer.classList.add('hidden');
-        } else {
-            welcomeScreen.classList.add('hidden');
-            mainContainer.classList.remove('hidden');
-        }
+        // if(activeTimers.length === 0){
+        //     welcomeScreen.classList.remove('hidden');
+        //     mainContainer.classList.add('hidden');
+        // } else {
+        //     welcomeScreen.classList.add('hidden');
+        //     mainContainer.classList.remove('hidden');
+        // }
     }
     
     function saveDrops() {
