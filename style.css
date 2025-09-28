@@ -121,6 +121,18 @@ h1 {
 }
 #add-timer-btn:hover { background-color: #ffca2c; }
 
+/* ⭐ 新增：按鈕點擊動畫效果 */
+@keyframes button-press {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+#add-timer-btn.pressed {
+    animation: button-press 0.3s ease-out;
+}
+
+
 #clear-all-btn {
     padding: 10px 20px; border: none; border-radius: 5px; background-color: #dc3545;
     color: white; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s;

@@ -192,6 +192,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 3. 新增/修改/刪除/重置功能 ---
     function addTimer() {
+        // ⭐ 新增：觸發按鈕動畫
+        addTimerBtn.classList.add('pressed');
+        setTimeout(() => {
+            addTimerBtn.classList.remove('pressed');
+        }, 300); // 確保此時間與 CSS 中的動畫時間一致
+
         if (!mainContainer.classList.contains('hidden') && (!selectedBoss || !channelInput.value)) {
              alert('請選擇 BOSS 並輸入頻道！');
              return;
