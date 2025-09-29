@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // DOM 元素
-    const shareBtn = document.getElementById('share-btn'); // ⭐ 新增：獲取分享按鈕元素
-
+    const shareBtn = document.getElementById('share-btn');
     const welcomeScreen = document.getElementById('welcome-screen');
     const bossSelectionGrid = document.getElementById('boss-selection-grid');
     const mainContainer = document.querySelector('.container');
@@ -23,51 +22,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const importReplaceBtn = document.getElementById('import-replace-btn');
     const importMergeBtn = document.getElementById('import-merge-btn');
     const importCancelBtn = document.getElementById('import-cancel-btn');
+    const sortOrderSelect = document.getElementById('sort-order-select'); // ⭐ 新增：獲取排序下拉選單
+
     // 資料變數
     let bossData = {};
     let dropData = {};
     let savedDrops = {};
     let activeTimers = [];
-    let pinnedBosses = []; // ⭐ 新增：用於儲存置頂的 BOSS
+    let pinnedBosses = [];
     let selectedBoss = null;
     let currentLootBoss = null;
     let sharedTimersData = [];
-
+    let bossOrder = [];
+    let currentSortOrder = 'respawnTime'; // ⭐ 新增：目前的排序方式，預設為重生時間
 
     function initializeApp() {
-        // ⭐ 需求 1 的修改點：
-        // 在載入任何資料前，先檢查 URL 是否為分享連結
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('share')) {
-            // 如果是分享連結，直接隱藏歡迎畫面，顯示主容器
             welcomeScreen.classList.add('hidden');
             mainContainer.classList.remove('hidden');
         }
 
         setupCustomSelect();
-        setupImportActions(); // 確保這個在 handleSharedURL 之前呼叫
+        setupImportActions();
         loadPins();
+        loadSortOrder(); // ⭐ 新增：載入儲存的排序設定
 
         loadAllData().then(() => {
-            // 正常載入本地計時器
             loadTimers();
             loadDrops();
-            
-            // 檢查 URL 是否有分享資料，如果有就跳出確認視窗
             handleSharedURL();
-
-            // 啟動計時器迴圈
             setInterval(updateAllTimers, 1000);
         });
     }
+
     // --- 1. 資料處理與渲染 ---
 
-    // ⭐ 新增：儲存置頂設定到 localStorage
     function savePins() {
         localStorage.setItem('mapleBossPins', JSON.stringify(pinnedBosses));
     }
 
-    // ⭐ 新增：從 localStorage 讀取置頂設定
     function loadPins() {
         const savedPins = localStorage.getItem('mapleBossPins');
         if (savedPins) {
@@ -75,44 +69,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // ⭐ 新增：切換 BOSS 的置頂狀態
+    // ⭐ 新增：儲存排序設定
+    function saveSortOrder() {
+        localStorage.setItem('mapleBossSortOrder', currentSortOrder);
+    }
+
+    // ⭐ 新增：讀取排序設定
+    function loadSortOrder() {
+        const savedSortOrder = localStorage.getItem('mapleBossSortOrder');
+        if (savedSortOrder) {
+            currentSortOrder = savedSortOrder;
+            sortOrderSelect.value = currentSortOrder;
+        }
+    }
+
     function togglePin(bossName, event) {
-        event.stopPropagation(); // 防止觸發父層的點擊事件（即選擇 BOSS）
+        event.stopPropagation();
         const index = pinnedBosses.indexOf(bossName);
         if (index > -1) {
-            pinnedBosses.splice(index, 1); // 如果已置頂，則取消
+            pinnedBosses.splice(index, 1);
         } else {
-            pinnedBosses.push(bossName); // 如果未置頂，則加入
+            pinnedBosses.push(bossName);
         }
         savePins();
-        renderBossOptions(); // 重新渲染列表以更新順序和樣式
+        renderBossOptions();
     }
     
-    // ⭐ 修改：建立一個專門渲染 BOSS 選項的函式
     function renderBossOptions() {
-        // 清空現有選項
         customOptions.innerHTML = '';
         bossSelectionGrid.innerHTML = '';
-
-        // 取得所有 BOSS 名稱並排序（置頂優先，然後按預設順序）
         const allBossNames = Object.keys(bossData);
         allBossNames.sort((a, b) => {
             const isAPinned = pinnedBosses.includes(a);
             const isBPinned = pinnedBosses.includes(b);
             if (isAPinned && !isBPinned) return -1;
             if (!isAPinned && isBPinned) return 1;
-            return 0; // 保持原有順序
+            return 0;
         });
 
-        // 遍歷排序後的 BOSS 列表來建立元素
         allBossNames.forEach(bossName => {
             const isPinned = pinnedBosses.includes(bossName);
-
-            // 1. 建立下拉選單選項
             const option = document.createElement('div');
             option.className = 'custom-option';
             option.dataset.value = bossName;
-            // ⭐ 在 HTML 中加入圖釘按鈕
             option.innerHTML = `
                 <span class="pin-btn ${isPinned ? 'active' : ''}" title="置頂/取消置頂">📌</span>
                 <img src="./image/${bossName}.png" alt="${bossName}">
@@ -128,12 +127,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectedBoss = bossName;
             });
             
-            // ⭐ 為圖釘按鈕綁定置頂事件
             option.querySelector('.pin-btn').addEventListener('click', (e) => togglePin(bossName, e));
-            
             customOptions.appendChild(option);
 
-            // 2. 建立歡迎畫面的 BOSS 方格
             const gridItem = document.createElement('div');
             gridItem.className = 'boss-grid-item';
             gridItem.dataset.bossName = bossName;
@@ -150,10 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetch('drop.json')
             ]);
             bossData = await bossResponse.json();
+            bossOrder = Object.keys(bossData);
             dropData = await dropResponse.json();
-            
-            renderBossOptions(); // ⭐ 資料載入後，呼叫渲染函式
-
+            renderBossOptions();
         } catch (error) {
             console.error('無法載入 JSON 資料:', error);
             alert('錯誤：無法載入 BOSS 或掉落物資料！');
@@ -174,8 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mainContainer.classList.remove('hidden');
     }
 
-
-    // --- 2. 核心計時器邏輯 (無變動) ---
+    // --- 2. 核心計時器邏輯 ---
     function parseRespawnTime(timeString) {
         const parts = timeString.split('~');
         const parse = str => (str.match(/(\d+)小時/)?.[1] || 0) * 3600 + (str.match(/(\d+)分/)?.[1] || 0) * 60;
@@ -192,18 +186,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 3. 新增/修改/刪除/重置功能 ---
     function addTimer() {
-        // ⭐ 新增：觸發按鈕動畫
         addTimerBtn.classList.add('pressed');
-        setTimeout(() => {
-            addTimerBtn.classList.remove('pressed');
-        }, 300); // 確保此時間與 CSS 中的動畫時間一致
+        setTimeout(() => addTimerBtn.classList.remove('pressed'), 300);
 
         if (!mainContainer.classList.contains('hidden') && (!selectedBoss || !channelInput.value)) {
              alert('請選擇 BOSS 並輸入頻道！');
              return;
         }
         
-        // 如果是從歡迎頁面直接新增
         if(mainContainer.classList.contains('hidden')) {
              welcomeScreen.classList.add('hidden');
              mainContainer.classList.remove('hidden');
@@ -226,11 +216,12 @@ document.addEventListener('DOMContentLoaded', () => {
             respawnString
         };
         activeTimers.push(timer);
-        createTimerCard(timer);
+        sortAndRenderTimers(); // ⭐ 修改：呼叫排序渲染函式
         saveTimers();
     }
 
-    function createTimerCard(timer) {
+    // ⭐ 修改：此函式現在只建立 DOM 元素並返回，不直接加入頁面
+    function createTimerCardElement(timer) {
         const card = document.createElement('div');
         card.className = 'timer-card';
         card.dataset.timerId = timer.id;
@@ -259,13 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
         card.querySelector('.delete-btn').addEventListener('click', () => deleteTimer(timer.id));
         card.querySelector('.reset-btn').addEventListener('click', () => resetTimer(timer.id));
         card.querySelector('.loot-btn').addEventListener('click', () => openLootModal(timer.bossName));
-        waitingContainer.appendChild(card);
+        return card;
     }
 
 
     function deleteTimer(id) {
         activeTimers = activeTimers.filter(timer => timer.id !== id);
-        document.querySelector(`.timer-card[data-timer-id='${id}']`)?.remove();
+        sortAndRenderTimers(); // ⭐ 修改：呼叫排序渲染函式
         saveTimers();
     }
 
@@ -276,8 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (confirm('確定要清除所有計時器嗎？此操作無法復原。')) {
             activeTimers = [];
-            respawnReadyContainer.innerHTML = '';
-            waitingContainer.innerHTML = '';
+            sortAndRenderTimers(); // ⭐ 修改：呼叫排序渲染函式
             saveTimers();
         }
     }
@@ -289,22 +279,61 @@ document.addEventListener('DOMContentLoaded', () => {
             timer.defeatTime = Date.now();
             timer.minRespawnTime = Date.now() + minSeconds * 1000;
             timer.maxRespawnTime = Date.now() + maxSeconds * 1000;
-            const card = document.querySelector(`.timer-card[data-timer-id='${id}']`);
-            if (card) {
-                card.querySelector('.defeat-time').textContent = `擊殺: ${new Date(timer.defeatTime).toLocaleTimeString()}`;
-                card.querySelector('.respawn-window').textContent = `重生區間: ${new Date(timer.minRespawnTime).toLocaleTimeString()} ~ ${new Date(timer.maxRespawnTime).toLocaleTimeString()}`;
-                waitingContainer.appendChild(card);
-            }
+            sortAndRenderTimers(); // ⭐ 修改：呼叫排序渲染函式
             saveTimers();
         }
     }
 
-    // --- 4. 核心更新迴圈 ---
+    // --- 4. 核心更新與排序 ---
+
+    // ⭐ 新增：核心的排序與渲染函式
+    function sortAndRenderTimers() {
+        respawnReadyContainer.innerHTML = '';
+        waitingContainer.innerHTML = '';
+
+        let timersToRender = [...activeTimers];
+        
+        timersToRender.sort((a, b) => {
+            switch (currentSortOrder) {
+                case 'bossName':
+                    return bossOrder.indexOf(a.bossName) - bossOrder.indexOf(b.bossName);
+                case 'defeatTime':
+                    return a.defeatTime - b.defeatTime; // 升序，先擊殺的在前面
+                case 'respawnTime':
+                default:
+                    return a.minRespawnTime - b.minRespawnTime; // 升序，最快重生的在前面
+            }
+        });
+
+        const now = Date.now();
+        timersToRender.forEach(timer => {
+            const card = createTimerCardElement(timer);
+            if (now < timer.minRespawnTime) {
+                waitingContainer.appendChild(card);
+            } else {
+                respawnReadyContainer.appendChild(card);
+            }
+        });
+        updateAllTimers(); // 立即更新一次文字顯示
+    }
+
+
+    // ⭐ 修改：此函式現在專注於更新顯示，並在需要時觸發重排
     function updateAllTimers() {
         const now = Date.now();
+        let needsReRender = false;
+
         activeTimers.forEach(timer => {
             const card = document.querySelector(`.timer-card[data-timer-id='${timer.id}']`);
             if (!card) return;
+
+            const wasInWaiting = card.parentElement === waitingContainer;
+            const shouldBeInWaiting = now < timer.minRespawnTime;
+
+            if (wasInWaiting !== shouldBeInWaiting) {
+                needsReRender = true;
+            }
+
             const countdownElement = card.querySelector('.countdown');
             card.classList.remove('status-window-open', 'status-overdue');
 
@@ -312,9 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const remainingSeconds = Math.round((timer.minRespawnTime - now) / 1000);
                 countdownElement.textContent = `重生倒數: ${formatTime(remainingSeconds)}`;
                 countdownElement.style.color = '#f0f0f0';
-                if (card.parentElement !== waitingContainer) {
-                    waitingContainer.appendChild(card);
-                }
             } else {
                 if (now <= timer.maxRespawnTime) {
                     card.classList.add('status-window-open');
@@ -326,15 +352,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     countdownElement.textContent = `已超過最長重生時間 ${formatTime(overdueSeconds)}`;
                     countdownElement.style.color = '#ffc107';
                 }
-                if (card.parentElement !== respawnReadyContainer) {
-                    respawnReadyContainer.appendChild(card);
-                }
             }
         });
+
+        if (needsReRender) {
+            sortAndRenderTimers();
+        }
     }
 
 
-    // --- 5. 掉落物 Modal 邏輯 ---
+    // --- 5. 掉落物 Modal 邏輯 (無變動) ---
     function openLootModal(bossName) {
         currentLootBoss = bossName;
         lootModalTitle.textContent = `${bossName} 掉落物紀錄`;
@@ -429,26 +456,15 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('沒有可以分享的計時器！');
             return;
         }
-
-        // 1. 將 activeTimers 陣列轉換成精簡的字串格式
-        // 格式: "BOSS名稱,頻道,擊殺時間戳|BOSS名稱,頻道,擊殺時間戳|..."
         const shareableData = activeTimers.map(timer => {
             return `${timer.bossName},${timer.channel},${timer.defeatTime}`;
         }).join('|');
-
-        // 2. 使用 Base64 編碼來避免特殊字元問題，讓 URL 更乾淨
         const encodedData = btoa(encodeURIComponent(shareableData));
-
-        // 3. 組合出完整的分享 URL
-        // location.origin + location.pathname 可以確保我們得到不含任何舊參數的乾淨網址
         const shareUrl = `${location.origin}${location.pathname}?share=${encodedData}`;
-
-        // 4. 使用 navigator.clipboard API 將連結複製到使用者剪貼簿
         navigator.clipboard.writeText(shareUrl).then(() => {
             alert('分享連結已複製到剪貼簿！\n傳給朋友，他們打開連結就能看到你的計時器狀態。');
         }).catch(err => {
             console.error('無法自動複製連結: ', err);
-            // 如果自動複製失敗，提供一個手動複製的備案
             window.prompt("自動複製失敗，請手動複製此連結:", shareUrl);
         });
     }
@@ -456,20 +472,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleSharedURL() {
         const urlParams = new URLSearchParams(window.location.search);
         const shareData = urlParams.get('share');
-
         if (!shareData) return;
 
         try {
             const decodedData = decodeURIComponent(atob(shareData));
             const timerDataStrings = decodedData.split('|');
-            
-            // 清空暫存陣列
             sharedTimersData = [];
-
             timerDataStrings.forEach(timerString => {
                 const [bossName, channel, defeatTimeString] = timerString.split(',');
                 const defeatTime = parseInt(defeatTimeString, 10);
-
                 if (bossData[bossName] && !isNaN(defeatTime)) {
                     const respawnString = bossData[bossName];
                     const { minSeconds, maxSeconds } = parseRespawnTime(respawnString);
@@ -482,58 +493,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             });
-
-            // 如果成功解析出資料，就顯示確認視窗
             if (sharedTimersData.length > 0) {
                 confirmImportModal.classList.remove('hidden');
             }
-
         } catch (error) {
             console.error('解析分享連結失敗:', error);
             alert('分享連結無效或已損壞。');
         }
     }
     
-    // ⭐ 新增：處理三種匯入選項的函式
     function setupImportActions() {
-        // 1. 取代
         importReplaceBtn.addEventListener('click', () => {
             activeTimers = sharedTimersData;
-            // 清空畫面上的計時器
-            respawnReadyContainer.innerHTML = '';
-            waitingContainer.innerHTML = '';
-            // 重新渲染畫面
-            activeTimers.forEach(createTimerCard);
             finishImport();
         });
-
-        // 2. 合併
         importMergeBtn.addEventListener('click', () => {
             sharedTimersData.forEach(sharedTimer => {
-                // ⭐ 需求 2 的修改點：
-                // 移除 isDuplicate 檢查，直接將分享的計時器加入列表
                 activeTimers.push(sharedTimer);
-                createTimerCard(sharedTimer); // 在畫面上新增卡片
             });
             finishImport();
         });
-
-        // 3. 取消
         importCancelBtn.addEventListener('click', () => {
-            finishImport(false); // 取消時不儲存
+            finishImport(false);
         });
     }
 
-    // ⭐ 新增：完成匯入後的清理工作
     function finishImport(shouldSave = true) {
         if (shouldSave) {
             saveTimers();
         }
-        sharedTimersData = []; // 清空暫存資料
-        confirmImportModal.classList.add('hidden'); // 隱藏視窗
-        // 清理 URL，避免重新整理時再次跳出視窗
+        sharedTimersData = [];
+        confirmImportModal.classList.add('hidden');
         history.replaceState(null, '', window.location.pathname);
+        sortAndRenderTimers(); // ⭐ 修改：匯入後也要排序
     }
+
     // --- 6. 本地儲存 & 初始化 ---
     function saveTimers() {
         localStorage.setItem('mapleBossTimers', JSON.stringify(activeTimers));
@@ -543,24 +537,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedTimers = localStorage.getItem('mapleBossTimers');
         if (savedTimers) {
             activeTimers = JSON.parse(savedTimers);
-            // ⭐ 檢查計時器是否過期太久（例如超過一天），可選擇性清除
             const now = Date.now();
             const oneDay = 24 * 60 * 60 * 1000;
             activeTimers = activeTimers.filter(timer => now - timer.defeatTime < oneDay);
-            saveTimers(); // 更新儲存
-
-            activeTimers.forEach(timer => createTimerCardForLoad(timer));
-            updateAllTimers(); 
+            saveTimers();
+            sortAndRenderTimers(); // ⭐ 修改：載入後直接呼叫排序渲染函式
         }
-
-        // 如果沒有活動計時器，則顯示歡迎畫面
-        // if(activeTimers.length === 0){
-        //     welcomeScreen.classList.remove('hidden');
-        //     mainContainer.classList.add('hidden');
-        // } else {
-        //     welcomeScreen.classList.add('hidden');
-        //     mainContainer.classList.remove('hidden');
-        // }
     }
     
     function saveDrops() {
@@ -573,15 +555,10 @@ document.addEventListener('DOMContentLoaded', () => {
             savedDrops = JSON.parse(data);
         }
     }
-
-    function createTimerCardForLoad(timer) {
-        createTimerCard(timer);
-    }
     
     // --- 7. 事件綁定與啟動 ---
     function setupCustomSelect() {
         customSelectWrapper.addEventListener('click', (e) => {
-            // ⭐ 確保點擊圖釘時不會開關選單
             if(!e.target.classList.contains('pin-btn')){
                 customSelect.classList.toggle('open');
             }
@@ -594,9 +571,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     addTimerBtn.addEventListener('click', addTimer);
-    shareBtn.addEventListener('click', generateShareLink); // ⭐ 新增：為分享按鈕綁定事件
-
+    shareBtn.addEventListener('click', generateShareLink);
     clearAllBtn.addEventListener('click', clearAllTimers);
+
+    // ⭐ 新增：排序下拉選單的事件監聽
+    sortOrderSelect.addEventListener('change', (e) => {
+        currentSortOrder = e.target.value;
+        saveSortOrder();
+        sortAndRenderTimers();
+    });
+
     channelInput.addEventListener('click', function() {
         this.select();
     });

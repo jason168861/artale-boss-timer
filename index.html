@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>楓之谷 Artele BOSS 重生計時器 v6 - 啟動畫面</title>
+    <title>楓之谷 Artale BOSS 重生計時器 v6 - 啟動畫面</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
     </div>
 
     <div class="container hidden">
-        <h1>楓之谷 Artele BOSS 重生計時器</h1>
+        <h1>楓之谷 Artale BOSS 重生計時器</h1>
         
         <div class="controls">
             <div class="control-group">
@@ -34,7 +34,16 @@
                 <label for="channel-input">頻道：</label>
                 <input type="number" id="channel-input" min="1" max="3000" value="1">
             </div>
-            <button id="add-timer-btn">新增計時器</button><button id="share-btn">分享計時器</button>
+             <div class="control-group">
+                <label for="sort-order-select">排序方式：</label>
+                <select id="sort-order-select">
+                    <option value="respawnTime" selected>重生時間</option>
+                    <option value="bossName">BOSS 種類</option>
+                    <option value="defeatTime">擊殺時間</option>
+                </select>
+            </div>
+            <button id="add-timer-btn">新增計時器</button>
+            <button id="share-btn">分享計時器</button>
             <button id="clear-all-btn">全部清除</button>
         </div>
 

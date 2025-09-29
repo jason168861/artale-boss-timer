@@ -484,3 +484,14 @@ h1 {
     margin: 20px 0;
     line-height: 1.6;
 }
+
+/* ⭐ 新增：排序下拉選單樣式 */
+#sort-order-select {
+    padding: 12px;
+    border-radius: 5px;
+    border: 1px solid #666;
+    background-color: #333;
+    color: #f0f0f0;
+    font-size: 16px;
+    cursor: pointer;
+}
