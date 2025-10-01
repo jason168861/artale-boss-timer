@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>楓之谷 Artale BOSS 重生計時器 v6 - 啟動畫面</title>
+    <title>楓之谷 Artale BOSS 計時器 (即時同步版)</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="welcome-screen">
         <h2>選擇一個 BOSS 開始計時</h2>
-        <div id="boss-selection-grid">
-            </div>
+        <div id="boss-selection-grid"></div>
     </div>
 
     <div class="container hidden">
-        <h1>楓之谷 Artale BOSS 重生計時器</h1>
+        <h1>楓之谷 Artale BOSS 計時器 (即時同步版)</h1>
         <div style="text-align: center; margin-bottom: 15px;">
-    <a href="sync.html" style="color: #17a2b8; text-decoration: none;">&raquo; 前往即時同步版 &laquo;</a>
-</div>
+            <a href="index.html" style="color: #ffc107; text-decoration: none;">&raquo; 切換至個人版 &laquo;</a>
+        </div>
         
         <div class="controls">
             <div class="control-group">
@@ -28,8 +27,7 @@
                             <span>選擇一個 BOSS...</span>
                             <div class="arrow"></div>
                         </div>
-                        <div class="custom-options">
-                        </div>
+                        <div class="custom-options"></div>
                     </div>
                 </div>
             </div>
@@ -46,7 +44,7 @@
                 </select>
             </div>
             <button id="add-timer-btn">新增計時器</button>
-            <button id="share-btn">分享計時器</button>
+            <button id="share-btn">分享同步連結</button>
             <button id="clear-all-btn">全部清除</button>
         </div>
 
@@ -74,20 +72,26 @@
                 </div>
         </div>
     </div>
-    <div id="confirm-import-modal" class="modal-overlay hidden">
-        <div class="modal-content">
+    <div id="privacy-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h2 id="confirm-modal-title">匯入分享的計時器</h2>
+                <h2 id="privacy-modal-title">歡迎使用即時同步功能</h2>
             </div>
-            <p>偵測到一個分享連結。您想要如何處理這些計時器？</p>
-            <div class="modal-actions">
-                <button id="import-replace-btn" class="modal-btn replace">全部取代</button>
-                <button id="import-merge-btn" class="modal-btn merge">合併加入</button>
-                <button id="import-cancel-btn" class="modal-btn cancel">取消</button>
+            <p>此頁面的計時器將會透過 Firebase 伺服器進行即時同步，讓所有使用相同分享連結的人看到一致的畫面。</p>
+            <p><strong>請注意：</strong>您的計時器資料（BOSS名稱、頻道、擊殺時間）將會被傳送至伺服器。我們承諾不會將您的資料用於其他用途或對外洩漏。</p>
+            <p>點擊「同意」開始同步。</p>
+            <div class="modal-actions" style="justify-content: center;">
+                <button id="privacy-agree-btn" class="modal-btn merge">我了解並同意</button>
             </div>
         </div>
     </div>
+
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
-    <script src="script.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <script src="sync_script.js"></script>
 </body>
 </html>
