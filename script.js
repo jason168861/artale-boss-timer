@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const importReplaceBtn = document.getElementById('import-replace-btn');
     const importMergeBtn = document.getElementById('import-merge-btn');
     const importCancelBtn = document.getElementById('import-cancel-btn');
-    const sortOrderSelect = document.getElementById('sort-order-select'); // ⭐ 新增：獲取排序下拉選單
+    const sortOrderSelect = document.getElementById('sort-order-select');
 
     // 資料變數
     let bossData = {};
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentLootBoss = null;
     let sharedTimersData = [];
     let bossOrder = [];
-    let currentSortOrder = 'respawnTime'; // ⭐ 新增：目前的排序方式，預設為重生時間
+    let currentSortOrder = 'respawnTime';
 
     function initializeApp() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setupCustomSelect();
         setupImportActions();
         loadPins();
-        loadSortOrder(); // ⭐ 新增：載入儲存的排序設定
+        loadSortOrder();
 
         loadAllData().then(() => {
             loadTimers();
@@ -69,12 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // ⭐ 新增：儲存排序設定
     function saveSortOrder() {
         localStorage.setItem('mapleBossSortOrder', currentSortOrder);
     }
 
-    // ⭐ 新增：讀取排序設定
     function loadSortOrder() {
         const savedSortOrder = localStorage.getItem('mapleBossSortOrder');
         if (savedSortOrder) {
@@ -216,15 +214,15 @@ document.addEventListener('DOMContentLoaded', () => {
             respawnString
         };
         activeTimers.push(timer);
-        sortAndRenderTimers(); // ⭐ 修改：呼叫排序渲染函式
+        sortAndRenderTimers();
         saveTimers();
     }
 
-    // ⭐ 修改：此函式現在只建立 DOM 元素並返回，不直接加入頁面
     function createTimerCardElement(timer) {
         const card = document.createElement('div');
         card.className = 'timer-card';
         card.dataset.timerId = timer.id;
+        // ⭐ 修改：將 max-respawn-countdown 調回 respawn-window 上方
         card.innerHTML = `
         <div class="card-buttons">
             <button class="loot-btn" title="掉落物紀錄">💰</button>
@@ -238,14 +236,15 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="title-group">
                 <h3>${timer.bossName}</h3>
-                <div class="timer-info">
-                     <p class="defeat-time">擊殺: ${new Date(timer.defeatTime).toLocaleTimeString()}</p>
-                </div>
             </div>
         </div>
         <div class="countdown">--:--:--</div>
+        <div class="max-respawn-countdown"></div>
         <div class="respawn-window">重生區間: ${new Date(timer.minRespawnTime).toLocaleTimeString()} ~ ${new Date(timer.maxRespawnTime).toLocaleTimeString()}</div>
-        <p class="fixed-respawn-time">固定重生: ${timer.respawnString}</p>
+        <div class="optional-info">
+            <p class="defeat-time">擊殺: ${new Date(timer.defeatTime).toLocaleTimeString()}</p>
+            <p class="fixed-respawn-time">固定重生: ${timer.respawnString}</p>
+        </div>
     `;
         card.querySelector('.delete-btn').addEventListener('click', () => deleteTimer(timer.id));
         card.querySelector('.reset-btn').addEventListener('click', () => resetTimer(timer.id));
@@ -256,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function deleteTimer(id) {
         activeTimers = activeTimers.filter(timer => timer.id !== id);
-        sortAndRenderTimers(); // ⭐ 修改：呼叫排序渲染函式
+        sortAndRenderTimers();
         saveTimers();
     }
 
@@ -267,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (confirm('確定要清除所有計時器嗎？此操作無法復原。')) {
             activeTimers = [];
-            sortAndRenderTimers(); // ⭐ 修改：呼叫排序渲染函式
+            sortAndRenderTimers();
             saveTimers();
         }
     }
@@ -279,14 +278,13 @@ document.addEventListener('DOMContentLoaded', () => {
             timer.defeatTime = Date.now();
             timer.minRespawnTime = Date.now() + minSeconds * 1000;
             timer.maxRespawnTime = Date.now() + maxSeconds * 1000;
-            sortAndRenderTimers(); // ⭐ 修改：呼叫排序渲染函式
+            sortAndRenderTimers();
             saveTimers();
         }
     }
 
     // --- 4. 核心更新與排序 ---
 
-    // ⭐ 新增：核心的排序與渲染函式
     function sortAndRenderTimers() {
         respawnReadyContainer.innerHTML = '';
         waitingContainer.innerHTML = '';
@@ -298,10 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'bossName':
                     return bossOrder.indexOf(a.bossName) - bossOrder.indexOf(b.bossName);
                 case 'defeatTime':
-                    return a.defeatTime - b.defeatTime; // 升序，先擊殺的在前面
+                    return a.defeatTime - b.defeatTime;
                 case 'respawnTime':
                 default:
-                    return a.minRespawnTime - b.minRespawnTime; // 升序，最快重生的在前面
+                    return a.minRespawnTime - b.minRespawnTime;
             }
         });
 
@@ -314,11 +312,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 respawnReadyContainer.appendChild(card);
             }
         });
-        updateAllTimers(); // 立即更新一次文字顯示
+        updateAllTimers();
     }
 
-
-    // ⭐ 修改：此函式現在專注於更新顯示，並在需要時觸發重排
     function updateAllTimers() {
         const now = Date.now();
         let needsReRender = false;
@@ -327,30 +323,55 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.querySelector(`.timer-card[data-timer-id='${timer.id}']`);
             if (!card) return;
 
+            // 檢查是否需要移動卡片
             const wasInWaiting = card.parentElement === waitingContainer;
             const shouldBeInWaiting = now < timer.minRespawnTime;
-
             if (wasInWaiting !== shouldBeInWaiting) {
                 needsReRender = true;
             }
 
+            // 獲取卡片內的元素
             const countdownElement = card.querySelector('.countdown');
+            const maxCountdownElement = card.querySelector('.max-respawn-countdown');
+            const optionalInfoElement = card.querySelector('.optional-info');
+
             card.classList.remove('status-window-open', 'status-overdue');
 
-            if (now < timer.minRespawnTime) {
+            if (shouldBeInWaiting) {
+                // 狀態：等待重生中
                 const remainingSeconds = Math.round((timer.minRespawnTime - now) / 1000);
                 countdownElement.textContent = `重生倒數: ${formatTime(remainingSeconds)}`;
                 countdownElement.style.color = '#f0f0f0';
+                
+                // 顯示固定重生和擊殺時間，隱藏最大重生倒數
+                optionalInfoElement.style.display = 'block';
+                maxCountdownElement.style.display = 'none';
+
             } else {
+                // 狀態：已進入重生視窗 或 已超過
+                // 隱藏固定重生和擊殺時間
+                optionalInfoElement.style.display = 'none';
+
                 if (now <= timer.maxRespawnTime) {
+                    // 狀態：已進入重生視窗
                     card.classList.add('status-window-open');
                     countdownElement.textContent = 'BOSS 已進入重生視窗！';
                     countdownElement.style.color = '#28a745';
+
+                    // 計算並顯示最大重生時間倒數
+                    const remainingMaxSeconds = Math.round((timer.maxRespawnTime - now) / 1000);
+                    maxCountdownElement.textContent = `100%重生倒數: ${formatTime(remainingMaxSeconds)}`;
+                    maxCountdownElement.style.display = 'block';
+
                 } else {
+                    // 狀態：已超過
                     card.classList.add('status-overdue');
                     const overdueSeconds = Math.round((now - timer.maxRespawnTime) / 1000);
                     countdownElement.textContent = `已超過最長重生時間 ${formatTime(overdueSeconds)}`;
                     countdownElement.style.color = '#ffc107';
+
+                    // 隱藏最大重生倒數
+                    maxCountdownElement.style.display = 'none';
                 }
             }
         });
@@ -459,8 +480,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const shareableData = activeTimers.map(timer => {
             return `${timer.bossName},${timer.channel},${timer.defeatTime}`;
         }).join('|');
-        const encodedData = btoa(encodeURIComponent(shareableData));
-        const shareUrl = `${location.origin}${location.pathname}?share=${encodedData}`;
+
+        const compressedData = LZString.compressToEncodedURIComponent(shareableData);
+        
+        const shareUrl = `${location.origin}${location.pathname}?share=${compressedData}`;
+
         navigator.clipboard.writeText(shareUrl).then(() => {
             alert('分享連結已複製到剪貼簿！\n傳給朋友，他們打開連結就能看到你的計時器狀態。');
         }).catch(err => {
@@ -475,7 +499,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!shareData) return;
 
         try {
-            const decodedData = decodeURIComponent(atob(shareData));
+            const decodedData = LZString.decompressFromEncodedURIComponent(shareData);
+            if (!decodedData) {
+                throw new Error('無法解壓縮分享資料');
+            }
+
             const timerDataStrings = decodedData.split('|');
             sharedTimersData = [];
             timerDataStrings.forEach(timerString => {
@@ -525,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sharedTimersData = [];
         confirmImportModal.classList.add('hidden');
         history.replaceState(null, '', window.location.pathname);
-        sortAndRenderTimers(); // ⭐ 修改：匯入後也要排序
+        sortAndRenderTimers();
     }
 
     // --- 6. 本地儲存 & 初始化 ---
@@ -541,7 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const oneDay = 24 * 60 * 60 * 1000;
             activeTimers = activeTimers.filter(timer => now - timer.defeatTime < oneDay);
             saveTimers();
-            sortAndRenderTimers(); // ⭐ 修改：載入後直接呼叫排序渲染函式
+            sortAndRenderTimers();
         }
     }
     
@@ -574,7 +602,6 @@ document.addEventListener('DOMContentLoaded', () => {
     shareBtn.addEventListener('click', generateShareLink);
     clearAllBtn.addEventListener('click', clearAllTimers);
 
-    // ⭐ 新增：排序下拉選單的事件監聽
     sortOrderSelect.addEventListener('change', (e) => {
         currentSortOrder = e.target.value;
         saveSortOrder();
@@ -587,6 +614,8 @@ document.addEventListener('DOMContentLoaded', () => {
     channelInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') addTimer();
     });
+
+
 
     closeLootModalBtn.addEventListener('click', closeLootModal);
     clearLootBtn.addEventListener('click', clearCurrentLoot);

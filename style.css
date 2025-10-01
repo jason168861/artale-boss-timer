@@ -121,7 +121,6 @@ h1 {
 }
 #add-timer-btn:hover { background-color: #ffca2c; }
 
-/* ⭐ 新增：按鈕點擊動畫效果 */
 @keyframes button-press {
     0% { transform: scale(1); }
     50% { transform: scale(1.08); }
@@ -179,25 +178,23 @@ h1 {
 .custom-option {
     display: flex; 
     align-items: center; 
-    /* ⭐ 修改 gap 以適應新的圖釘按鈕 */
     gap: 8px; 
     padding: 8px 12px;
     cursor: pointer; 
     transition: background-color 0.2s;
 }
 
-/* ⭐ 新增：圖釘按鈕樣式 */
 .pin-btn {
     font-size: 16px;
     cursor: pointer;
     padding: 2px 4px;
     border-radius: 4px;
     transition: transform 0.2s, color 0.2s;
-    opacity: 0.3; /* 預設半透明 */
+    opacity: 0.3;
 }
 
 .custom-option:hover .pin-btn {
-    opacity: 1; /* 滑鼠移到選項上時圖釘完全顯示 */
+    opacity: 1;
 }
 
 .pin-btn:hover {
@@ -205,8 +202,8 @@ h1 {
 }
 
 .pin-btn.active {
-    opacity: 1; /* 置頂狀態下圖釘完全顯示 */
-    color: #ff0000; /* 讓置頂的圖釘變色 */
+    opacity: 1;
+    color: #ff0000;
 }
 
 
@@ -253,6 +250,7 @@ h1 {
     position: relative;
     padding-right: 75px; 
     box-sizing: border-box; 
+    margin-bottom: 5px;
 }
 
 .boss-portrait {
@@ -278,14 +276,41 @@ h1 {
     margin-top: 5px; 
 }
 
-.timer-info p { margin: 2px 0 0; font-size: 14px; color: #ccc; }
-.countdown, .respawn-window, .fixed-respawn-time { text-align: center; }
-.countdown { font-size: 22px; font-weight: bold; margin-top: 10px; }
-.respawn-window { font-size: 12px; color: #aaa; margin-top: 5px; }
-.fixed-respawn-time { font-size: 12px; color: #87ceeb; margin-top: 8px; }
+.countdown { 
+    font-size: 22px; 
+    font-weight: bold; 
+    text-align: center;
+}
+.respawn-window { 
+    font-size: 12px; 
+    color: #aaa; 
+    text-align: center;
+    margin-top: 5px; 
+}
+
+/* 「視窗關閉倒數」的基礎樣式 */
+.max-respawn-countdown {
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-top: 4px;
+    transition: all 0.3s ease;
+}
+
+.optional-info {
+    margin-top: 8px;
+    text-align: center;
+}
+.optional-info p {
+    margin: 2px 0;
+    font-size: 12px;
+}
+.optional-info .defeat-time { color: #ccc; }
+.optional-info .fixed-respawn-time { color: #87ceeb; }
+
 
 /* 按鈕樣式 */
-.card-buttons { position: absolute; top: 8px; right: 8px; display: flex; gap: 8px;     z-index: 10; }
+.card-buttons { position: absolute; top: 8px; right: 8px; display: flex; gap: 8px; z-index: 10; }
 .delete-btn, .reset-btn, .loot-btn {
     background: #dc3545; border: none; color: white; width: 28px; height: 28px;
     border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 16px;
@@ -295,14 +320,34 @@ h1 {
 .reset-btn { background: #007bff; }
 .loot-btn { background: #9c27b0; font-size: 14px; }
 .delete-btn:hover, .reset-btn:hover, .loot-btn:hover { transform: scale(1.1); }
+
 /* 狀態顏色 */
 .status-window-open { border-left-color: #28a745; animation: pulse-green 2s infinite; }
 .status-overdue { border-left-color: #ffc107; }
+
 @keyframes pulse-green {
     0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
     70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
     100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
 }
+
+/* ⭐ 修改：將醒目特效應用到 max-respawn-countdown */
+.timer-card.status-window-open .max-respawn-countdown {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: rgb(40, 167, 69); /* 使用亮黃色，在綠色背景上更突出 */
+    padding: 8px 5px;
+    margin-top: 8px;
+    border-radius: 5px;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
+/* ⭐ 新增：保留動畫定義 */
+/* @keyframes pulse-text-green {
+    0% { transform: scale(1); box-shadow: 0 0 5px rgb(40, 167, 69); }
+    70% { transform: scale(1.03); box-shadow: 0 0 15px rgb(76, 175, 80); }
+    100% { transform: scale(1); box-shadow: 0 0 5px rgb(40, 167, 69); }
+} */
 
 
 .modal-overlay {
@@ -381,7 +426,7 @@ h1 {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 15px;
     overflow-y: auto;
-    padding-right: 10px; /* for scrollbar */
+    padding-right: 10px;
 }
 
 .loot-item {
@@ -417,12 +462,12 @@ h1 {
     font-size: 14px;
     color: #f0f0f0;
 }
-/* 在 #add-timer-btn 樣式後面新增 */
+
 #share-btn {
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
-    background-color: #17a2b8; /* 選擇一個不同的顏色，例如藍綠色 */
+    background-color: #17a2b8;
     color: white;
     font-size: 16px;
     font-weight: bold;
@@ -433,7 +478,7 @@ h1 {
 #share-btn:hover {
     background-color: #138496;
 }
-/* ⭐ 新增：匯入確認視窗的樣式 */
+
 .modal-actions {
     display: flex;
     justify-content: flex-end;
@@ -456,7 +501,7 @@ h1 {
 }
 
 .modal-btn.replace {
-    background-color: #dc3545; /* 紅色 */
+    background-color: #dc3545;
     color: white;
 }
 .modal-btn.replace:hover {
@@ -464,7 +509,7 @@ h1 {
 }
 
 .modal-btn.merge {
-    background-color: #28a745; /* 綠色 */
+    background-color: #28a745;
     color: white;
 }
 .modal-btn.merge:hover {
@@ -472,7 +517,7 @@ h1 {
 }
 
 .modal-btn.cancel {
-    background-color: #6c757d; /* 灰色 */
+    background-color: #6c757d;
     color: white;
 }
 .modal-btn.cancel:hover {
@@ -485,7 +530,6 @@ h1 {
     line-height: 1.6;
 }
 
-/* ⭐ 新增：排序下拉選單樣式 */
 #sort-order-select {
     padding: 12px;
     border-radius: 5px;
