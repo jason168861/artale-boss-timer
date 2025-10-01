@@ -351,7 +351,40 @@ document.addEventListener('DOMContentLoaded', () => {
             lootModal.classList.remove('hidden');
             return;
         }
-        const customSort = (a,b) => { /* ... 排序邏輯不變 ... */ return 0; };
+
+        // ⭐⭐⭐ 已修正：從 script.js 複製完整的排序邏輯 ⭐⭐⭐
+        const customSort = (a, b) => {
+            const getBagPriority = (name) => {
+                if (name.includes('銅幣')) return 1;
+                if (name.includes('銀幣')) return 2;
+                if (name.includes('金幣')) return 3;
+                if (name.includes('古幣')) return 4;
+                return Infinity;
+            };
+            const priorityA = getBagPriority(a);
+            const priorityB = getBagPriority(b);
+            if (priorityA !== Infinity || priorityB !== Infinity) {
+                if (priorityA !== priorityB) return priorityA - priorityB;
+                const getMultiplier = (name) => {
+                    const match = name.match(/X(\d+)/);
+                    return match ? parseInt(match[1], 10) : 1;
+                };
+                return getMultiplier(a) - getMultiplier(b);
+            }
+            const isAScroll = a.includes('卷軸');
+            const isBScroll = b.includes('卷軸');
+            if (isAScroll && !isBScroll) return -1;
+            if (!isAScroll && isBScroll) return 1;
+            const getPercentage = (name) => {
+                const match = name.match(/(\d+)%/);
+                return match ? parseInt(match[1], 10) : Infinity;
+            };
+            const percentA = getPercentage(a);
+            const percentB = getPercentage(b);
+            if (percentA !== percentB) return percentA - percentB;
+            return a.localeCompare(b, 'zh-Hant');
+        };
+
         const sortedItems = [...items].sort(customSort);
         const checkedItems = savedDrops[bossName] || [];
         sortedItems.forEach((item, index) => {
